@@ -34,14 +34,14 @@ Hotspot Hub is an admin dashboard for managing prepaid WiFi infrastructure, adve
 
 2. Run the development server:
    ```bash
-   npm run dev -- --host 0.0.0.0
+   npm run dev
    ```
 
 3. Open the app in your browser at the address shown in the terminal.
 
 ## Available scripts
 
-- `npm run dev` — start the Vite development server
+- `npm run dev` — start the Cloudflare Workers development server
 - `npm run build` — build the application
 - `npm run build:dev` — build in development mode
 - `npm run preview` — preview the production build

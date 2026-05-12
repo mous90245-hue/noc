@@ -82,7 +82,7 @@
     "wrangler": "^4.90.1"
   },
   "scripts": {
-    "dev": "vite dev",
+    "dev": "wrangler dev",
     "build": "vite build",
     "build:dev": "vite build",
     "preview": "vite preview",
