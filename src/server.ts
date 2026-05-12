@@ -1,8 +1,10 @@
+/// <reference path="../worker-configuration.d.ts" />
+
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import { handleApiRequest, broadcast, clients } from "./lib/mongo";
+import { handleApiRequest, clients } from "./lib/mongo";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -77,19 +79,20 @@ export default {
           return new Response("Expected Upgrade: websocket", { status: 426 });
         }
         const webSocketPair = new WebSocketPair();
-        const [client, server] = Object.values(webSocketPair) as [WebSocket, WebSocket];
+        const client = webSocketPair[0];
+        const server = webSocketPair[1];
         server.accept();
         clients.add(server);
         server.addEventListener("close", () => {
           clients.delete(server);
         });
-        server.addEventListener("message", (event) => {
+        server.addEventListener("message", () => {
           // Handle incoming messages if needed
         });
         return new Response(null, {
           status: 101,
           webSocket: client,
-        } as ResponseInit & { webSocket?: WebSocket });
+        });
       }
       if (url.pathname.startsWith("/api")) {
         return await handleApiRequest(request, env);

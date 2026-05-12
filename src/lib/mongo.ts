@@ -20,6 +20,7 @@ interface EnvBindings {
 
 declare global {
   var __mongodbClientPromise: Promise<any> | undefined;
+  const process: any;
 }
 
 const DEFAULT_MONGODB_URI = "mongodb+srv://oxeansa:oxeanpass1@cluster0.sh0vm.mongodb.net/?appName=Cluster0";
@@ -36,9 +37,9 @@ function broadcast(message: string) {
 }
 
 // Broadcast updates every 5 seconds
-setInterval(() => {
-  broadcast(JSON.stringify({ type: 'update' }));
-}, 5000);
+// setInterval(() => {
+//   broadcast(JSON.stringify({ type: 'update' }));
+// }, 5000);
 
 export { broadcast, clients };
 
@@ -47,7 +48,7 @@ function getEnvBindings(env: unknown): EnvBindings | undefined {
   return env as EnvBindings;
 }
 
-function getProcessEnv(): NodeJS.ProcessEnv | undefined {
+function getProcessEnv(): Record<string, string | undefined> | undefined {
   if (typeof process === "undefined") return undefined;
   return process.env;
 }
