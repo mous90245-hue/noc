@@ -1,4 +1,4 @@
-import { createFileRoute, useLoaderData, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import {
@@ -24,38 +24,23 @@ import {
   Legend,
 } from "recharts";
 import { PageHeader, StatCard, Panel, StatusDot } from "@/components/dashboard-ui";
-import { fmtCurrency, activeSessions, nodes, users, transactions, revenue7d, sessionsHourly } from "@/lib/mock-data";
-import { generateAlerts, fetchDashboardData } from "@/lib/api";
+import { fmtCurrency } from "@/lib/mock-data";
+import { fetchDashboardData, generateAlerts } from "@/lib/api";
 
 export type DashboardData = Awaited<ReturnType<typeof fetchDashboardData>>;
 
 export const Route = createFileRoute("/_app/dashboard")({
-  loader: () => {
-    console.log('Loader running');
-    return {
-      nodes,
-      users,
-      activeSessions,
-      transactions,
-      revenue7d,
-      sessionsHourly,
-    };
-  },
   component: Dashboard,
 });
 
 function Dashboard() {
-  const data = useLoaderData({ from: "/_app/dashboard" });
   const queryClient = useQueryClient();
-  const { data: liveData, isLoading } = useQuery<DashboardData>({
+  const { data, isLoading, error } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
     queryFn: fetchDashboardData,
     enabled: typeof window !== "undefined",
     refetchInterval: 5000, // Fallback polling
   });
-
-  // Use live data if available, otherwise loader data
-  const displayData = liveData || data;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -70,22 +55,22 @@ function Dashboard() {
     return () => ws.close();
   }, [queryClient]);
 
-  if (isLoading && !displayData) {
+  if (isLoading) {
     return <div className="p-6">Loading dashboard data…</div>;
   }
 
-  if (!displayData) {
+  if (error || !data) {
     return (
       <div className="p-6 text-destructive">
-        Unable to load dashboard data
+        Unable to load dashboard data: {error instanceof Error ? error.message : "Unknown error"}
       </div>
     );
   }
 
-  const onlineNodes = displayData.nodes.filter((n) => n.status === "online").length;
-  const totalRevenue = displayData.revenue7d.reduce((s, d) => s + d.topups + d.vouchers + d.ads, 0);
-  const totalBalance = displayData.users.reduce((s, u) => s + u.balance, 0);
-  const alerts = generateAlerts(displayData.nodes, displayData.users);
+  const onlineNodes = data.nodes.filter((n) => n.status === "online").length;
+  const totalRevenue = data.revenue7d.reduce((s, d) => s + d.topups + d.vouchers + d.ads, 0);
+  const totalBalance = data.users.reduce((s, u) => s + u.balance, 0);
+  const alerts = generateAlerts(data.nodes, data.users);
 
   return (
     <div>
@@ -102,14 +87,14 @@ function Dashboard() {
       <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Active Sessions"
-          value={String(displayData.activeSessions.length)}
+          value={String(data.activeSessions.length)}
           delta="+12% vs yesterday"
           icon={<Activity className="h-5 w-5" />}
           accent="primary"
         />
         <StatCard
           label="Online Nodes"
-          value={`${onlineNodes} / ${displayData.nodes.length}`}
+          value={`${onlineNodes} / ${data.nodes.length}`}
           delta="2 backhauls · 6 APs"
           icon={<Radio className="h-5 w-5" />}
           accent="success"
@@ -124,7 +109,7 @@ function Dashboard() {
         <StatCard
           label="Wallet Float"
           value={fmtCurrency(totalBalance)}
-          delta={`${displayData.users.length} active wallets`}
+          delta={`${data.users.length} active wallets`}
           icon={<Wallet className="h-5 w-5" />}
           accent="warning"
         />
@@ -141,7 +126,7 @@ function Dashboard() {
         >
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={displayData.revenue7d}>
+              <AreaChart data={data.revenue7d}>
                 <defs>
                   <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="oklch(0.82 0.16 195)" stopOpacity={0.5} />
@@ -189,7 +174,7 @@ function Dashboard() {
         <Panel title="Sessions per hour">
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={displayData.sessionsHourly}>
+              <BarChart data={data.sessionsHourly}>
                 <CartesianGrid stroke="oklch(0.28 0.025 240)" strokeDasharray="2 4" />
                 <XAxis dataKey="h" stroke="oklch(0.65 0.02 220)" fontSize={11} />
                 <YAxis stroke="oklch(0.65 0.02 220)" fontSize={11} />
@@ -218,7 +203,7 @@ function Dashboard() {
           }
         >
           <div className="space-y-2">
-            {displayData.nodes.slice(0, 5).map((n) => (
+            {data.nodes.slice(0, 5).map((n) => (
               <div
                 key={n.id}
                 className="flex items-center justify-between rounded-md border border-border/50 bg-background/30 px-3 py-2 text-xs"
@@ -248,7 +233,7 @@ function Dashboard() {
           }
         >
           <div className="space-y-2">
-            {displayData.transactions.slice(0, 6).map((t) => (
+            {data.transactions.slice(0, 6).map((t) => (
               <div
                 key={t.id}
                 className="flex items-center justify-between border-b border-border/40 pb-2 text-xs last:border-0"
