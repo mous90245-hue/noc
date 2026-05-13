@@ -34,7 +34,7 @@ Hotspot Hub is an admin dashboard for managing prepaid WiFi infrastructure, adve
 
 2. Run the development server:
    ```bash
-   npm run dev
+   
    ```
 
 3. Open the app in your browser at the address shown in the terminal.
@@ -60,7 +60,7 @@ Hotspot Hub is an admin dashboard for managing prepaid WiFi infrastructure, adve
 - `GET /api/advertisements` — advertisement documents
 - `GET /api/nodes`
 - `GET /api/users`
-- `GET /api/vouchers`
+- `GET /api/vouchnpm run devers`
 - `GET /api/transactions`
 - `GET /api/activeSessions`
 - `GET /api/notifications`
