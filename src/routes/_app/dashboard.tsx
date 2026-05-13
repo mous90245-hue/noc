@@ -55,11 +55,11 @@ function Dashboard() {
     return () => ws.close();
   }, [queryClient]);
 
-  if (isLoading) {
+  if (isLoading || (!data && !error)) {
     return <div className="p-6">Loading dashboard data…</div>;
   }
 
-  if (error || !data) {
+  if (error) {
     return (
       <div className="p-6 text-destructive">
         Unable to load dashboard data: {error instanceof Error ? error.message : "Unknown error"}
