@@ -20,7 +20,6 @@ interface EnvBindings {
 
 declare global {
   var __mongodbClientPromise: Promise<any> | undefined;
-  const process: any;
 }
 
 const DEFAULT_MONGODB_URI = "mongodb+srv://oxeansa:oxeanpass1@cluster0.sh0vm.mongodb.net/?appName=Cluster0";
